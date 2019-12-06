@@ -1,0 +1,22 @@
+configfile: "config.yaml"
+
+ ## start HOMER
+rule HOMER_motif_enrichment:
+    input:
+        file=expand("data/HOMER/input/{folder}/filelist_for_HOMER.txt",folder=config["HOMER_regions"]),
+        PWMs_filtered="data/HOMER/PWMs/PWMs_filtered.txt"
+    params:
+        infolder=expand("data/HOMER/input/{folder}",folder=config["HOMER_regions"]),
+        outfolder=expand("data/HOMER/output/{folder}/enrichment/all_PWMs",folder=config["HOMER_regions"]),
+    output:
+        ALLfolder=directory(expand("data/HOMER/output/{folder}/enrichment/all_PWMs/BLC/",folder=config["HOMER_regions"]))
+    message: "Calculating enrichment in WGCNA ATAC-seq clusters of TF binding motifs. The motifs are discovered by HOMER or found from the IMAGE paper PMWs. Ensure it's in your PATH."
+    shell:
+            """
+        mkdir {output.ALLfolder}
+        while read f; do
+            echo "Processing $f file..."
+            echo "For IMAGE PWMs"
+            findMotifsGenome.pl {params.infolder}/${{f}}_HOMER_ATAC.bed hg19 {params.outfolder}/${{f}} -mknown {input.PWMs_filtered} -mcheck {input.PWMs_filtered}  -size given -p 16
+        done < {input.file}
+                """
