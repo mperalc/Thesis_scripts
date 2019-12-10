@@ -1,0 +1,49 @@
+---
+title: "GenePredictionStats_analysis"
+author: "Marta Pérez Alcántara"
+date: "28 July 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = "asis")
+
+library(readr)
+library(summarytools)
+st_options(plain.ascii = FALSE,
+           style = "rmarkdown",
+           subtitle.emphasis = F,
+           dfSummary.silent = TRUE,
+           descr.silent = T)
+```
+
+Focusing on target gene. Read in target gene file. 
+
+```{r load_gene,echo=T}
+
+# Differentiation stages
+
+stage = c("iPSC", "DE", "GT", "PF", "PE", "EP", "EN")
+
+gene_stats = list()
+for (s in stage) {
+  gene_stats[[s]] = read_delim(file = paste0("/Users/Marta/Documents/WTCHG/DPhil/Data/Integration/ABC/Predictions/",s,"/GenePredictionStats.txt"), delim = "\t")
+  gene_stats[[s]]$CellType = rep(s,nrow(gene_stats[[s]]))
+}
+
+gene_stats = do.call("rbind",gene_stats)
+
+descr(gene_stats$nDistalEnhancersPredicted, style = "rmarkdown")
+
+# per stage
+for(s in stage){
+frequencies = gene_stats[gene_stats$CellType == s,]
+print(descr(frequencies$nDistalEnhancersPredicted))
+}
+
+# # General summary
+dfSummary(gene_stats, plain.ascii = FALSE, style = "grid",
+          graph.magnif = 0.75, valid.col = FALSE, tmp.img.dir = ".")
+
+
+```
